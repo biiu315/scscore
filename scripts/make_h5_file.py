@@ -6,7 +6,7 @@ import random
 import numpy as np
 from multiprocessing import Pool
 import cPickle as pickle
-
+'nujhjh'
 '''
 This script is used to generate an .h5 file containing all the fingerprints 
 needed to train the model, so they do not have to be generated on the fly.
