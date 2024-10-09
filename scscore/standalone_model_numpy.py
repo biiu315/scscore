@@ -14,6 +14,8 @@ import gzip
 import six
 
 import os
+
+# SynCoy_data = '/home/labhhc2/Documents/workspace/D20/Ngoc/scscore/data/data_processed.csv'
 project_root = os.path.dirname(os.path.dirname(__file__))
 
 score_scale = 5.0
@@ -95,7 +97,8 @@ class SCScorer():
 
     def _load_vars(self, weight_path):
         if weight_path.endswith('pickle'):
-            import cPickle as pickle
+            import _pickle as cPickle
+            import pickle
             with open(weight_path, 'rb') as fid:
                 self.vars = pickle.load(fid)
                 self.vars = [x.tolist() for x in self.vars]

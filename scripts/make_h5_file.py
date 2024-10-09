@@ -5,7 +5,7 @@ import rdkit.Chem.AllChem as AllChem
 import random 
 import numpy as np
 from multiprocessing import Pool
-import cPickle as pickle
+import _pickle as cPickle
 'nujhjh'
 '''
 This script is used to generate an .h5 file containing all the fingerprints 
@@ -19,6 +19,7 @@ process up a little.
 '''
 
 path = sys.argv[1]
+print(path)
 
 if not os.path.isfile(path):
     quit('Need to specify a file to read from')
@@ -27,7 +28,9 @@ if not os.path.isfile(path + '.pkl'):
     data = []
     with open(path, 'r') as f:
         for line in f:
+            print(line)
             rex, n, _id = line.strip("\r\n").split(' ')
+            print('rex',rex)
             r,p = rex.split('>>')
             if ('.' in p) or (not p):
                 continue # do not allow multiple products or none
