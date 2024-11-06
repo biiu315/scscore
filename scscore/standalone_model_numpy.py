@@ -5,6 +5,7 @@ fast enough that there is no real reason to use GPUs (via tf) instead of CPUs (v
 '''
 
 import math, sys, random, os
+import pandas as pd
 import numpy as np
 import time
 import rdkit.Chem as Chem
@@ -12,8 +13,8 @@ import rdkit.Chem.AllChem as AllChem
 import json
 import gzip
 import six
-
 import os
+from pathlib import Path
 
 # SynCoy_data = '/home/labhhc2/Documents/workspace/D20/Ngoc/scscore/data/data_processed.csv'
 project_root = os.path.dirname(os.path.dirname(__file__))
@@ -111,23 +112,57 @@ class SCScorer():
 
 
 if __name__ == '__main__':
+    
+    root_dir = Path(__file__).resolve().parents[1]
+    # Add the root directory to the system path
+    sys.path.append(str(root_dir))
+    os.chdir(root_dir)
     model = SCScorer()
     model.restore(os.path.join(project_root, 'models', 'full_reaxys_model_1024bool', 'model.ckpt-10654.as_numpy.json.gz'))
-    smis = ['CCCOCCC', 'CCCNc1ccccc1']
-    for smi in smis:
-        (smi, sco) = model.get_score_from_smi(smi)
-        print('%.4f <--- %s' % (sco, smi))
+    
+    with open('./data/fw_data.json.gz','rb') as f:
+        data=json.load(f)
+    
+    result=[]
+    for idx,i in enumerate(data):
+        dic_1_data={}
+        rea_product=i['reactions'].split('>>')[1].split('.')
+        dct_pro={}
+        for pro in rea_product:
+            
+            (smi, sco) = model.get_score_from_smi(pro)
+            # print(smi)
+            # print(pro)
+            # assert smi == pro
+            dct_pro[pro]=sco
+        dic_1_data['reaction']=dct_pro
+        
+        if isinstance(i['negative_reactions'],list):
+            for j in range(len(i['negative_reactions'])):
+                decoy=i['negative_reactions'][j]
+                try:
+                    de_product=decoy.split('>>')[1].split('.')
+                    dct_de_pro={}
+                    for pro in de_product:
+                        
+                        (smi, sco) = model.get_score_from_smi(pro)
 
-    model = SCScorer()
-    model.restore(os.path.join(project_root, 'models', 'full_reaxys_model_2048bool', 'model.ckpt-10654.as_numpy.json.gz'), FP_len=2048)
-    smis = ['CCCOCCC', 'CCCNc1ccccc1']
-    for smi in smis:
-        (smi, sco) = model.get_score_from_smi(smi)
-        print('%.4f <--- %s' % (sco, smi))
+                        # assert smi == pro
+                        dct_de_pro[pro]=sco
+                    dic_1_data['decoy{}'.format(str(j+1))]=dct_de_pro
+                except:
+                    dic_1_data['decoy']={}
 
-    model = SCScorer()
-    model.restore(os.path.join(project_root, 'models', 'full_reaxys_model_1024uint8', 'model.ckpt-10654.as_numpy.json.gz'))
-    smis = ['CCCOCCC', 'CCCNc1ccccc1']
-    for smi in smis:
-        (smi, sco) = model.get_score_from_smi(smi)
-        print('%.4f <--- %s' % (sco, smi))
+        else:
+            dic_1_data['decoy']={}
+        result.append(dic_1_data)
+    
+    with open('./data/result.json','w') as f:
+        json.dump(result,f,indent=4)
+    print('Saved')     
+            
+        
+        
+    
+    
+    
